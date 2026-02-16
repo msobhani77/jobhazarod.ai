@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafetyWatch - Hazard Reporting System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safety-orange: #FF6B00;
+            --warning-yellow: #FFB800;
+            --alert-red: #DC2626;
+            --slate-dark: #1E293B;
+            --slate-medium: #334155;
+            --slate-light: #F1F5F9;
+            --success-green: #059669;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            min-height: 100vh;
+            color: #E2E8F0;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--safety-orange);
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--safety-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-left p {
+            color: #94A3B8;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .settings-btn {
+            background: rgba(255, 107, 0, 0.2);
+            border: 2px solid var(--safety-orange);
+            color: var(--safety-orange);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 107, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--safety-orange);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .warning-banner {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #EF4444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #FCA5A5;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(255, 107, 0, 0.2);
+            padding-bottom: 0;
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab:hover {
+            color: var(--safety-orange);
+        }
+
+        .tab.active {
+            color: var(--safety-orange);
+            border-bottom-color: var(--safety-orange);
+        }
+
+        .content-panel {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #F1F5F9;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            color: #E2E8F0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--safety-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--safety-orange), #FF8533);
+            color: white;
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.2);
+            color: #E2E8F0;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.3);
+        }
+
+        .report-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            border-color: var(--safety-orange);
+            transform: translateX(4px);
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ADE80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .severity-medium {
+            background: rgba(251, 191, 36, 0.2);
+            color: #FBBF24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .severity-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .severity-critical {
+            background: rgba(220, 38, 38, 0.3);
+            color: #FCA5A5;
+            border: 1px solid rgba(220, 38, 38, 0.5);
+        }
+
+        .photo-preview {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: 2px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-response {
+            background: rgba(255, 107, 0, 0.1);
+            border-left: 4px solid var(--safety-orange);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .chat-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.user {
+            background: rgba(255, 107, 0, 0.2);
+            border-left: 4px solid var(--safety-orange);
+        }
+
+        .chat-message.ai {
+            background: rgba(148, 163, 184, 0.1);
+            border-left: 4px solid #64748B;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--safety-orange);
+        }
+
+        .stat-label {
+            color: #94A3B8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 1rem;
+            background: rgba(255, 107, 0, 0.1);
+            border: 2px dashed var(--safety-orange);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .file-input-label:hover {
+            background: rgba(255, 107, 0, 0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .api-status.configured {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ADE80;
+        }
+
+        .api-status.not-configured {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>⚠️ SafetyWatch</h1>
+                <p>AI-Powered Hazard Reporting & Safety Management System</p>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                <div id="api-status" class="api-status not-configured">
+                    ⚠️ API Not Configured
+                </div>
+                <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <h2 style="color: var(--safety-orange); margin-bottom: 1rem;">⚙️ API Configuration</h2>
+                
+                <div class="warning-banner">
+                    <strong>⚠️ Security Warning:</strong> This stores your API key in browser localStorage. For production use, implement a backend server. Never commit API keys to GitHub.
+                </div>
+
+                <div class="form-group">
+                    <label>Anthropic API Key</label>
+                    <input 
+                        type="password" 
+                        id="api-key-input" 
+                        placeholder="sk-ant-..."
+                        value=""
+                    >
+                    <p style="color: #94A3B8; font-size: 0.875rem; margin-top: 0.5rem;">
+                        Get your API key from <a href="https://console.anthropic.com/" target="_blank" style="color: var(--safety-orange);">console.anthropic.com</a>
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+                    <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+                    <button class="btn btn-secondary" onclick="clearApiKey()" style="margin-left: auto;">Clear Key</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('report')">Report Hazard</button>
+            <button class="tab" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="switchTab('assistant')">AI Assistant</button>
+        </div>
+
+        <!-- Report Hazard Panel -->
+        <div id="report-panel" class="content-panel active">
+            <div class="card">
+                <h2 style="margin-bottom: 1.5rem; color: var(--safety-orange);">Report New Hazard</h2>
+                
+                <form id="hazard-form" onsubmit="submitReport(event)">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Location *</label>
+                            <input type="text" id="location" required placeholder="e.g., Building A, Floor 3, Room 301">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Technician Name *</label>
+                            <input type="text" id="technician" required placeholder="Your name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hazard Type *</label>
+                        <select id="hazard-type" required>
+                            <option value="">Select hazard type...</option>
+                            <option value="Chemical Spill">Chemical Spill</option>
+                            <option value="Electrical Hazard">Electrical Hazard</option>
+                            <option value="Fire Risk">Fire Risk</option>
+                            <option value="Structural Damage">Structural Damage</option>
+                            <option value="Slip/Trip Hazard">Slip/Trip Hazard</option>
+                            <option value="Equipment Malfunction">Equipment Malfunction</option>
+                            <option value="Gas Leak">Gas Leak</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Severity Level *</label>
+                        <select id="severity" required>
+                            <option value="">Select severity...</option>
+                            <option value="Low">Low - Minor concern</option>
+                            <option value="Medium">Medium - Moderate risk</option>
+                            <option value="High">High - Significant danger</option>
+                            <option value="Critical">Critical - Immediate action required</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="description" rows="4" required placeholder="Describe the hazard in detail..."></textarea>
+                        <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="getAIHelp()">
+                            ✨ Get AI Help Writing Description
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload Photo (Optional)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload(event)">
+                            <label for="photo-upload" class="file-input-label">
+                                📷 Click to upload or drag photo here
+                            </label>
+                        </div>
+                        <img id="photo-preview" class="photo-preview" style="display: none;">
+                        <button type="button" id="analyze-photo-btn" class="btn btn-secondary" style="margin-top: 0.5rem; display: none;" onclick="analyzePhoto()">
+                            🔍 Analyze Photo with AI
+                        </button>
+                        <div id="photo-analysis"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary">Submit Report</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Panel -->
+        <div id="dashboard-panel" class="content-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total">0</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-critical">0</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-high">0</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-medium">0</div>
+                    <div class="stat-label">Medium Priority</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 1.5rem; color: var(--safety-orange);">Recent Reports</h2>
+                <div id="reports-list"></div>
+            </div>
+        </div>
+
+        <!-- AI Assistant Panel -->
+        <div id="assistant-panel" class="content-panel">
+            <div class="card">
+                <h2 style="margin-bottom: 1.5rem; color: var(--safety-orange);">AI Safety Assistant</h2>
+                <p style="color: #94A3B8; margin-bottom: 1.5rem;">
+                    Ask questions about hazards, safety procedures, or get recommendations.
+                </p>
+
+                <div id="chat-history" class="chat-container"></div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="Ask about safety procedures, hazard identification, or recommendations..."
+                        style="flex: 1;"
+                        onkeypress="if(event.key==='Enter') sendChatMessage()"
+                    >
+                    <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Key Management
+        function getApiKey() {
+            return localStorage.getItem('anthropic_api_key');
+        }
+
+        function checkApiKeyStatus() {
+            const apiKey = getApiKey();
+            const statusEl = document.getElementById('api-status');
+            
+            if (apiKey) {
+                statusEl.className = 'api-status configured';
+                statusEl.innerHTML = '✅ API Configured';
+                return true;
+            } else {
+                statusEl.className = 'api-status not-configured';
+                statusEl.innerHTML = '⚠️ API Not Configured';
+                return false;
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').classList.add('active');
+            const apiKey = getApiKey();
+            if (apiKey) {
+                document.getElementById('api-key-input').value = apiKey;
+            }
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            if (!apiKey) {
+                alert('Please enter an API key');
+                return;
+            }
+            
+            if (!apiKey.startsWith('sk-ant-')) {
+                alert('Invalid API key format. Key should start with "sk-ant-"');
+                return;
+            }
+
+            localStorage.setItem('anthropic_api_key', apiKey);
+            checkApiKeyStatus();
+            closeSettings();
+            alert('✅ API key saved successfully!');
+        }
+
+        function clearApiKey() {
+            if (confirm('Are you sure you want to clear the API key?')) {
+                localStorage.removeItem('anthropic_api_key');
+                document.getElementById('api-key-input').value = '';
+                checkApiKeyStatus();
+                alert('API key cleared');
+            }
+        }
+
+        // API Call Helper
+        async function callClaudeAPI(messages, systemPrompt = null) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                alert('Please configure your API key in Settings (⚙️ button)');
+                throw new Error('API key not configured');
+            }
+
+            const requestBody = {
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1000,
+                messages: messages
+            };
+
+            if (systemPrompt) {
+                requestBody.system = systemPrompt;
+            }
+
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'API call failed');
+            }
+
+            return await response.json();
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+            
+            if (tabName === 'dashboard') {
+                loadDashboard();
+            }
+        }
+
+        // Photo handling
+        let currentPhotoBase64 = null;
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentPhotoBase64 = e.target.result;
+                    document.getElementById('photo-preview').src = currentPhotoBase64;
+                    document.getElementById('photo-preview').style.display = 'block';
+                    document.getElementById('analyze-photo-btn').style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // AI Photo Analysis
+        async function analyzePhoto() {
+            if (!currentPhotoBase64) return;
+
+            const analysisDiv = document.getElementById('photo-analysis');
+            analysisDiv.innerHTML = '<div class="ai-response"><span class="loading"></span> Analyzing photo...</div>';
+
+            try {
+                const base64Data = currentPhotoBase64.split(',')[1];
+                const data = await callClaudeAPI([{
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image',
+                            source: {
+                                type: 'base64',
+                                media_type: 'image/jpeg',
+                                data: base64Data
+                            }
+                        },
+                        {
+                            type: 'text',
+                            text: 'Analyze this image for potential safety hazards. Identify: 1) What hazards are visible, 2) Severity level (Low/Medium/High/Critical), 3) Recommended hazard type category, 4) Immediate safety concerns. Be specific and concise.'
+                        }
+                    ]
+                }]);
+
+                const analysisText = data.content.find(c => c.type === 'text')?.text || 'No analysis available.';
+
+                // Auto-categorize based on AI analysis
+                autoCategorize(analysisText);
+
+                analysisDiv.innerHTML = `
+                    <div class="ai-response">
+                        <h4 style="color: var(--safety-orange); margin-bottom: 0.5rem;">📊 AI Analysis Results</h4>
+                        <p style="line-height: 1.6;">${analysisText}</p>
+                    </div>
+                `;
+            } catch (error) {
+                analysisDiv.innerHTML = `<div class="ai-response" style="border-left-color: var(--alert-red);">
+                    ❌ Error analyzing photo: ${error.message}
+                </div>`;
+            }
+        }
+
+        // Auto-categorize hazard type and severity
+        function autoCategorize(analysisText) {
+            const lowerText = analysisText.toLowerCase();
+            
+            // Detect hazard type
+            const hazardMap = {
+                'chemical': 'Chemical Spill',
+                'electrical': 'Electrical Hazard',
+                'fire': 'Fire Risk',
+                'structural': 'Structural Damage',
+                'slip': 'Slip/Trip Hazard',
+                'trip': 'Slip/Trip Hazard',
+                'equipment': 'Equipment Malfunction',
+                'gas': 'Gas Leak'
+            };
+
+            for (const [keyword, hazardType] of Object.entries(hazardMap)) {
+                if (lowerText.includes(keyword)) {
+                    document.getElementById('hazard-type').value = hazardType;
+                    break;
+                }
+            }
+
+            // Detect severity
+            if (lowerText.includes('critical') || lowerText.includes('immediate')) {
+                document.getElementById('severity').value = 'Critical';
+            } else if (lowerText.includes('high') || lowerText.includes('significant')) {
+                document.getElementById('severity').value = 'High';
+            } else if (lowerText.includes('medium') || lowerText.includes('moderate')) {
+                document.getElementById('severity').value = 'Medium';
+            } else if (lowerText.includes('low') || lowerText.includes('minor')) {
+                document.getElementById('severity').value = 'Low';
+            }
+        }
+
+        // AI Help for Description
+        async function getAIHelp() {
+            const location = document.getElementById('location').value;
+            const hazardType = document.getElementById('hazard-type').value;
+            const currentDesc = document.getElementById('description').value;
+
+            if (!hazardType) {
+                alert('Please select a hazard type first.');
+                return;
+            }
+
+            const descField = document.getElementById('description');
+            const originalPlaceholder = descField.placeholder;
+            descField.placeholder = '✨ AI is writing...';
+            descField.disabled = true;
+
+            try {
+                const data = await callClaudeAPI([{
+                    role: 'user',
+                    content: currentDesc ? 
+                        `Improve this hazard report description. Make it more detailed and professional. Current description: "${currentDesc}". Location: ${location}. Hazard type: ${hazardType}.` :
+                        `Write a professional hazard report description template for: ${hazardType} at ${location || 'the site'}. Include what to observe and document.`
+                }]);
+
+                const suggestion = data.content.find(c => c.type === 'text')?.text || '';
+                
+                descField.value = suggestion;
+                descField.disabled = false;
+                descField.placeholder = originalPlaceholder;
+            } catch (error) {
+                alert('Error getting AI help: ' + error.message);
+                descField.disabled = false;
+                descField.placeholder = originalPlaceholder;
+            }
+        }
+
+        // Submit Report
+        async function submitReport(event) {
+            event.preventDefault();
+
+            const report = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                location: document.getElementById('location').value,
+                technician: document.getElementById('technician').value,
+                hazardType: document.getElementById('hazard-type').value,
+                severity: document.getElementById('severity').value,
+                description: document.getElementById('description').value,
+                photo: currentPhotoBase64
+            };
+
+            // Generate AI safety recommendations if API is configured
+            if (getApiKey()) {
+                try {
+                    const data = await callClaudeAPI([{
+                        role: 'user',
+                        content: `Generate immediate safety recommendations for this hazard: Type: ${report.hazardType}, Severity: ${report.severity}, Description: ${report.description}. Provide 3-5 specific, actionable steps.`
+                    }]);
+
+                    report.recommendations = data.content.find(c => c.type === 'text')?.text || '';
+                } catch (error) {
+                    report.recommendations = 'Error generating recommendations: ' + error.message;
+                }
+            } else {
+                report.recommendations = 'Configure API key in Settings to get AI recommendations.';
+            }
+
+            // Save to localStorage
+            const reports = JSON.parse(localStorage.getItem('hazard_reports') || '[]');
+            reports.unshift(report);
+            localStorage.setItem('hazard_reports', JSON.stringify(reports));
+            
+            alert('✅ Report submitted successfully!');
+            resetForm();
+            switchTab('dashboard');
+            loadDashboard();
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('hazard-form').reset();
+            document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('analyze-photo-btn').style.display = 'none';
+            document.getElementById('photo-analysis').innerHTML = '';
+            currentPhotoBase64 = null;
+        }
+
+        // Load Dashboard
+        function loadDashboard() {
+            const reports = JSON.parse(localStorage.getItem('hazard_reports') || '[]');
+
+            // Update stats
+            document.getElementById('stat-total').textContent = reports.length;
+            document.getElementById('stat-critical').textContent = reports.filter(r => r.severity === 'Critical').length;
+            document.getElementById('stat-high').textContent = reports.filter(r => r.severity === 'High').length;
+            document.getElementById('stat-medium').textContent = reports.filter(r => r.severity === 'Medium').length;
+
+            // Display reports
+            const reportsList = document.getElementById('reports-list');
+            if (reports.length === 0) {
+                reportsList.innerHTML = '<p style="color: #94A3B8; text-align: center; padding: 2rem;">No reports yet. Submit your first hazard report!</p>';
+            } else {
+                reportsList.innerHTML = reports.map(report => `
+                    <div class="report-card">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="color: var(--safety-orange); margin-bottom: 0.5rem;">${report.hazardType}</h3>
+                                <p style="color: #94A3B8; font-size: 0.875rem;">
+                                    📍 ${report.location} | 👤 ${report.technician}
+                                </p>
+                            </div>
+                            <span class="severity-badge severity-${report.severity.toLowerCase()}">${report.severity}</span>
+                        </div>
+                        <p style="color: #CBD5E1; margin-bottom: 1rem; line-height: 1.6;">${report.description}</p>
+                        ${report.recommendations ? `
+                            <div style="background: rgba(255, 107, 0, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--safety-orange);">
+                                <h4 style="color: var(--safety-orange); margin-bottom: 0.5rem; font-size: 0.875rem;">🛡️ SAFETY RECOMMENDATIONS</h4>
+                                <p style="color: #E2E8F0; font-size: 0.875rem; line-height: 1.6;">${report.recommendations}</p>
+                            </div>
+                        ` : ''}
+                        <p style="color: #64748B; font-size: 0.75rem; margin-top: 1rem;">
+                            Reported: ${new Date(report.timestamp).toLocaleString()}
+                        </p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Chat Assistant
+        let chatHistory = [];
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            const chatContainer = document.getElementById('chat-history');
+            
+            // Add user message
+            chatHistory.push({ role: 'user', content: message });
+            chatContainer.innerHTML += `
+                <div class="chat-message user">
+                    <strong>You:</strong><br>${message}
+                </div>
+            `;
+            
+            input.value = '';
+
+            // Add loading indicator
+            chatContainer.innerHTML += `
+                <div class="chat-message ai" id="loading-msg">
+                    <span class="loading"></span> Thinking...
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const data = await callClaudeAPI(chatHistory);
+                const aiResponse = data.content.find(c => c.type === 'text')?.text || 'No response.';
+                
+                chatHistory.push({ role: 'assistant', content: aiResponse });
+
+                // Remove loading and add AI response
+                document.getElementById('loading-msg').remove();
+                chatContainer.innerHTML += `
+                    <div class="chat-message ai">
+                        <strong>AI Safety Assistant:</strong><br>${aiResponse.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } catch (error) {
+                document.getElementById('loading-msg').remove();
+                chatContainer.innerHTML += `
+                    <div class="chat-message ai" style="border-left-color: var(--alert-red);">
+                        <strong>Error:</strong><br>${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize on load
+        checkApiKeyStatus();
+        loadDashboard();
+    </script>
+</body>
+</html>
